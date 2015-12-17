@@ -1,0 +1,25 @@
+
+
+
+dichiara a.
+a=a+1.
+definisci b = seno di a.
+esegui stampa di a, ",", b, "\n".
+se a>b allora esegui stampa di b+"<-b\n".
+
+mentre a>b ripeti:
+ stampa di "il seno di ",a," è:", (seno di a), "\n";
+ a=a-0.1 .
+
+
+definisci valore.
+definisci indice = 0.
+esegui stampa di "dimmi un numero: ".
+leggi su valore.
+valore = intero di valore.
+
+mentre indice<valore ripeti:  
+	stampa di indice,"\t";
+	indice = indice + 1.
+
+esegui stampa di "\n".

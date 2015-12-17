@@ -1,0 +1,39 @@
+dichiara x.
+assegna lettura di "qualcosa" a x.
+dichiara indice ed assegna gli 0.
+definisci n come intero del inserimento di "numero di ripetizioni".
+mentre indice è minore di n o indice è uguale a n ripeti: stampa di x,"\n" assegna indice+1 ad indice.
+
+/*
+dichiara a ed assegna gli intero di inserimento di "un numero".
+definisci i=0, uno=1.
+
+mentre i < a ripeti: 
+	assegna i + uno ad i, 
+	chiama stampa di i,"\t".
+
+esegui stampa di "\n".
+*/
+
+/*
+definisci a=30, b=10, c=20.
+
+se a<b allora stampa di a 
+altrimenti mentre a>b ripeti: 
+	a = a - 1 
+	se a<c allora c=a;  
+	stampa di c,"\n".
+*/
+
+/*
+definisci valore = inserimento di "dimmi un valore e io ti dirò il suo seno: ".
+stampa di seno di intero di valore,"\n".
+*/
+
+/*
+definisci b ad assegna gli intero di inserimento di "dimmi un numero positivo: ".
+dichiara i.
+
+se b<0 allora stampa di "è negativo \n" 
+altrimenti mentre i<b ripeti: stampa di i," ed il suo seno è: ", (seno di i), "\n";  assegna i + 1 ad i.
+*/

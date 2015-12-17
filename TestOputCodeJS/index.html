@@ -1,0 +1,111 @@
+
+    <!DOCTYPE html>
+    <html>
+    <style>
+    
+    .console
+    {
+        margin: 20px;
+    }
+    
+    .console #header
+    {
+        width: 640px;
+        color: #000;
+        background-color: #CFCFCF;
+        padding: 5px 20px 5px 20px;
+        border-top-left-radius:  5px;
+        border-top-right-radius: 5px;
+        box-shadow: 10px 10px 5px #999999;
+    }
+    
+    .console #text
+    {
+        width: 640px;
+        min-height: 480px;
+        color: #FFF;
+        text-align: left;
+        background-color: #000;
+        padding: 20px;
+        border-bottom-left-radius:  5px;
+        border-bottom-right-radius: 5px;
+        box-shadow: 10px 10px 5px #999999;
+    }
+    
+    </style>
+    <body>
+    <center>
+    <div class="console">
+        <div id="header">CONSOLE</div>
+        <div id="text"></div>
+    <div>
+    </center>
+    </body>
+    <script>
+    
+    function stampa()
+    {
+        function nl2br (str)
+        {
+            return (str + "").replace(/([^>\r\n]?)(\r\n|\n\r|\r|\n)/g, "$1" + "<br>" + "$2");
+        }
+        var console = document.getElementById("text");
+        for (var i=0; i < arguments.length; ++i)
+        {
+            console.innerHTML += nl2br(arguments[i]);
+        }
+    }
+    
+    function leggi(value)
+    {
+        /*none*/
+    }
+    
+    function lettura()
+    {
+        if(arguments.length == 0) return prompt("inserisci");
+        else                      return prompt(arguments[0]);
+    }
+    
+    function inserimento()
+    {
+        if(arguments.length == 0) return prompt("inserisci");
+        else                      return prompt(arguments[0]);
+    }
+    
+    function seno(value)
+    {
+        return Math.sin(value);
+    }
+    
+    function coseno(value)
+    {
+        return Math.cos(value);
+    }
+    
+    function intero(value)
+    {
+        if(typeof value === 'string') return parseInt(value);
+        else                          return value;
+    }
+    
+    function stringa(value)
+    {
+        if(typeof value === 'string') return value;
+        else                          return value+"";
+    }
+    
+    
+var x;
+x = lettura("qualcosa");
+var indice=0.000000;
+var n=intero(inserimento("numero di ripetizioni"));
+while(((indice)<(n))||((indice)==(n)))
+{
+stampa(x,"\n"); 
+indice = (indice)+(1.000000);
+}
+
+    </script>
+    </html>
+    
