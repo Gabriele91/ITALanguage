@@ -16,10 +16,13 @@
 namespace it_language
 {
     
-    const char* code_js_header =
-    R"JS_CODE(
+	const char* code_js_header =
+	R"JS_CODE(
     <!DOCTYPE html>
     <html>
+	<head>
+	<meta charset="UTF-8"/>
+	</head>
     <style>
     
     .console
@@ -74,7 +77,27 @@ namespace it_language
             console.innerHTML += nl2br(arguments[i]);
         }
     }
-    
+
+    function vettore()
+    {
+       return [];
+    }   
+
+	function lunghezza(value)
+    {
+       return value.length;
+    }   
+
+	function dimensione(value)
+    {
+       return value.length;
+    }   
+
+	function inserisci(v_array,value)
+    {
+       v_array.push(value);
+    }   
+
     function leggi(value)
     {
         /*none*/
@@ -127,16 +150,25 @@ namespace it_language
         
         std::list < std::string > m_errors;
         std::string m_js_code;
-        
+
+		const std::string& compile_variable(syntactic_tree::variable_node* node)
+		{
+			return node->m_name;
+		}
+
+		std::string compile_assignable(syntactic_tree::assignable_node* node)
+		{
+			//return variable
+			if (node->m_type == syntactic_tree::VARIABLE_NODE) return compile_variable(node->to_variable_node());
+			//else
+			return compile_assignable(node->to_field_node()->m_assignable) + "[" + compile_exp(node->to_field_node()->m_exp) + "]";
+		}
+
         std::string compile_exp(syntactic_tree::exp_node* node)
         {
             if (node->m_type == syntactic_tree::EXP_NODE)
             {
                 return "(" + compile_exp(node->m_left) + ")" + node->m_name + "(" + compile_exp(node->m_right) + ")";
-            }
-            if (node->m_type == syntactic_tree::VARIABLE_NODE)
-            {
-                return node->to<syntactic_tree::variable_node>()->m_name;
             }
             if (node->m_type == syntactic_tree::CONSTANT_NODE)
             {
@@ -153,6 +185,12 @@ namespace it_language
             {
                 return compile_call((syntactic_tree::call_node*)node,false);
             }
+			if (node->m_type == syntactic_tree::FIELD_NODE ||
+				node->m_type == syntactic_tree::VARIABLE_NODE)
+			{
+				auto*  assignable_node = node->to<syntactic_tree::assignable_node>();
+				return compile_assignable(assignable_node);
+			}
             if (node->is_link())
             {
                 return "(" + compile_exp(node->m_left) + ")";
@@ -184,7 +222,7 @@ namespace it_language
         
         std::string compile_op(syntactic_tree::op_node* node)
         {
-            return node->m_variable->m_name + " = " + compile_exp(node->m_exp) + ";\n";
+			return compile_assignable(node->m_assignable) + " = " + compile_exp(node->m_exp) + ";\n";
         }
         
         std::string compile_call(syntactic_tree::call_node* node,bool end_line = true)

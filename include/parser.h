@@ -38,21 +38,22 @@ namespace it_language
 	// logicComp := (['è'] 'maggiore' 'di'|['è'] 'minore' 'di'|['è'] 'uguale' 'a'|'<'|'>'|'==')
 	// logicOne  := ('non'|'!')
 
-	// exp		:= logic
-	// logic    := (compare *logicComp compare)   | compare
-	// compare  := (summinus *logicComp summinus) | summinus
-	// summinus := (timediv *('+'|'-') timediv)   | timediv
-	// timediv  := (oneop *('*'|'/') oneop) | oneop
-	// oneop    := ('-' value) | (logicOne value) | | value
-	// value    := variable | constant | '(' exp ')'
+	exp		   := logic
+	logic      := compare *(logicOp compare) 
+	compare    := summinus ?(logicComp summinus)
+	summinus   := timediv *(('+'|'-') timediv)
+	timediv    := oneop *(('*'|'/') oneop)
+	oneop      := ('-' value) | (logicOne value) | value
+	value      := constant | '(' exp ')' | call | assignable
+	assignable := variable | variable '[' exp ']'
 
 	//statments
 	italanguage := +(stament end_comand)
 	staments    := *(stament [end_line]) stament [end_partial]
     stament		:= declaration |  if | call | cicle | operation
     assignment  := ('='|['ed'] 'assegna' 'gli'|'come')
-    operation   := variable assignament exp | 
-                   'assegna' exp ('a'|'ad') variable
+    operation   := assignable assignament exp | 
+                   'assegna' exp ('a'|'ad') assignable
 	declaration := ("dichiara"|"definisci") (variable | variable assignament exp) *( ',' (variable | variable assignament exp))
 	if			:= 'se' exp 'allora' staments ['altrimenti' staments]
     call        := ('esegui'|'chiama') variable [('di'|'del'|'con'|'su'|'dalla'|'da') [*(exp ',') exp]]
@@ -182,6 +183,14 @@ namespace it_language
 		static bool is_end_arg(char c)
 		{
 			return (c == ')');
+		}
+		static bool is_start_index(char c)
+		{
+			return (c == '[');
+		}
+		static bool is_end_index(char c)
+		{
+			return (c == ']');
 		}
 		///////////////////////////////////////////////////////////////////////////////////////////////
 		void skip_line_space(const char*& inout)
@@ -400,18 +409,20 @@ namespace it_language
 		}
 		//parser exp
         /*
-        // logicOp   := ('e'|'o'|'&&'|'||')
-        // logicComp := (['è'] 'maggiore' 'di'|['è'] 'minore' 'di'|['è'] 'uguale' 'a'|'<'|'>'|'==')
-		// logicOne  := ('non'|'!')
+        logicOp   := ('e'|'o'|'&&'|'||')
+        logicComp := (['è'] 'maggiore' 'di'|['è'] 'minore' 'di'|['è'] 'uguale' 'a'|'<'|'>'|'==')
+		logicOne  := ('non'|'!')
 
-		// exp		:= logic
-		// logic    := (compare *logicOp compare)   | compare
-		// compare  := (summinus *logicComp summinus) | summinus
-		// summinus := (timediv *('+'|'-') timediv)   | timediv
-		// timediv  := (oneop *('*'|'/') oneop) | oneop
-		// oneop    := ('-' value) | (logicOne value) | value
-		// value    := variable | constant | '(' exp ')' | call
+		exp		   := logic
+		logic      := compare *(logicOp compare) 
+		compare    := summinus ?(logicComp summinus)
+		summinus   := timediv *(('+'|'-') timediv)
+		timediv    := oneop *(('*'|'/') oneop)
+		oneop      := ('-' value) | (logicOne value) | value
+		value      := constant | '(' exp ')' | call | assignable
+		assignable := variable | variable '[' exp ']'
 		*/
+		//parse value
 		bool parse_value(const char*& ptr, syntactic_tree::exp_node*& node)
 		{
 			skip_space_end_comment(ptr);
@@ -446,21 +457,14 @@ namespace it_language
 				//call node is a exp node
 				node = (syntactic_tree::exp_node*)call_node;
 			}
-			//variable name
-			else if (is_start_name(*ptr))
+			//is variable/field request
+			else if (is_an_assignable_attribute(ptr))
 			{
-				std::string variable_name;
-				if (!parse_name(ptr, &ptr, variable_name))
-				{
-					push_error("not valid variable name");
-					return false;
-				}
-				if (!exists_variable(variable_name))
-				{
-					push_error("variable not declared");
-					return false;
-				}
-				node = syntactic_tree::variable(variable_name, m_line);
+				//get assignable attribute
+				syntactic_tree::node* var_field_node;
+				if (!parse_assignable(ptr, var_field_node)) return false;
+				//field node is a exp node
+				node = (syntactic_tree::exp_node*)var_field_node;
 			}
 			//is exp
 			else if (is_start_arg(*ptr))
@@ -473,6 +477,8 @@ namespace it_language
 					push_error("not valid expression (value)");
 					return false;
 				}
+				//skip
+				skip_space_end_comment(ptr);
 				//end )
 				if (!is_end_arg(*ptr))
 				{
@@ -527,35 +533,34 @@ namespace it_language
 		bool parse_timediv(const char*& ptr, syntactic_tree::exp_node*& node)
 		{
 			//value node
-			syntactic_tree::exp_node *left = nullptr;
-			syntactic_tree::exp_node *timediv = nullptr;
-			syntactic_tree::exp_node *right = nullptr;
+			syntactic_tree::exp_node *left   = nullptr;
+			syntactic_tree::exp_node *opnode = nullptr;
 			//skip
 			skip_space_end_comment(ptr);
 			//parse value
-			if (!parse_oneop(ptr, left))   return false;
+			if (!parse_oneop(ptr, opnode))   return false;
 			//skip
 			skip_space_end_comment(ptr);
-			//('*'|'/')
-			if (*ptr == '*' || *ptr == '/')
+			//cicle
+			while (*ptr == '*' || *ptr == '/')
 			{
-				timediv = syntactic_tree::exp(std::string() + *ptr, nullptr, m_line);
+				//left node
+				left   = opnode;
+				//node
+				opnode = syntactic_tree::exp(std::string() + *ptr, nullptr, m_line);
+				//jmp op (*|/)
 				++ptr;
+				//compone node
+				opnode->m_left = left;
+				//skip
+				skip_space_end_comment(ptr);
+				//parse value
+				if (!parse_oneop(ptr, opnode->m_right))  return false;
+				//skip
+				skip_space_end_comment(ptr);
 			}
-			else
-			{
-				node = left;
-				return true;
-			}
-			//skip
-			skip_space_end_comment(ptr);
-			//parse value
-			if (!parse_oneop(ptr, right))  return false;
-			//create exp
-			timediv->m_left = left;
-			timediv->m_right = right;
 			//save node
-			node = timediv;
+			node = opnode;
 			//success
 			return true;
 		}
@@ -564,34 +569,33 @@ namespace it_language
 		{
 			//value node
 			syntactic_tree::exp_node *left = nullptr;
-			syntactic_tree::exp_node *summinus = nullptr;
-			syntactic_tree::exp_node *right = nullptr;
+			syntactic_tree::exp_node *opnode = nullptr;
 			//skip
 			skip_space_end_comment(ptr);
 			//parse value
-			if (!parse_timediv(ptr, left))   return false;
+			if (!parse_timediv(ptr, opnode))   return false;
 			//skip
 			skip_space_end_comment(ptr);
-			//('+'|'-')
-			if (*ptr == '+' || *ptr == '-')
+			//cicle
+			while (*ptr == '+' || *ptr == '-')
 			{
-				summinus = syntactic_tree::exp(std::string() + *ptr, nullptr, m_line);
+				//left node
+				left = opnode;
+				//node
+				opnode = syntactic_tree::exp(std::string() + *ptr, nullptr, m_line);
+				//jmp op (+|-)
 				++ptr;
+				//compone node
+				opnode->m_left = left;
+				//skip
+				skip_space_end_comment(ptr);
+				//parse value
+				if (!parse_timediv(ptr, opnode->m_right))  return false;
+				//skip
+				skip_space_end_comment(ptr);
 			}
-			else
-			{
-				node = left;
-				return true;
-			}
-			//skip
-			skip_space_end_comment(ptr);
-			//parse value
-			if (!parse_timediv(ptr, right))  return false;
-			//create exp
-			summinus->m_left = left;
-			summinus->m_right = right;
 			//save node
-			node = summinus;
+			node = opnode;
 			//success
 			return true;
 		}
@@ -736,41 +740,43 @@ namespace it_language
 		//parser logic
 		bool parse_logic(const char*& ptr, syntactic_tree::exp_node*& node)
 		{
-			//skip
-			skip_space_end_comment(ptr);
 			//value node
 			syntactic_tree::exp_node *left = nullptr;
-			syntactic_tree::exp_node *logicop = nullptr;
-			syntactic_tree::exp_node *right = nullptr;
+			syntactic_tree::exp_node *opnode = nullptr;
 			//skip
 			skip_space_end_comment(ptr);
 			//parse value
-			if (!parse_compare(ptr, left))   return false;
+			if (!parse_compare(ptr, opnode))   return false;
 			//skip
 			skip_space_end_comment(ptr);
-			//('e'|'o'|'&&'|'||')
-            if ( CSTRCMP_SKIP(ptr, "e") || CSTRCMP_SKIP(ptr, "&&") )
-            {
-                logicop = syntactic_tree::exp(std::string("&&"), nullptr, m_line);
-            }
-            else if( CSTRCMP_SKIP(ptr, "o") || CSTRCMP_SKIP(ptr, "||") )
-            {
-                logicop = syntactic_tree::exp(std::string("||"), nullptr, m_line);
-            }
-            else
-            {
-                node = left;
-                return true;
-            }
-			//skip
-			skip_space_end_comment(ptr);
-			//parse value
-			if (!parse_compare(ptr, right))  return false;
-			//create exp
-			logicop->m_left = left;
-			logicop->m_right = right;
+			//cicle
+			while (CSTRCMP(ptr, "e") ||
+				   CSTRCMP(ptr, "&&") ||
+				   CSTRCMP(ptr, "o") ||
+				   CSTRCMP(ptr, "||")  )
+			{
+				//left node
+				left = opnode;
+				//op
+				if ( CSTRCMP_SKIP(ptr, "e") || CSTRCMP_SKIP(ptr, "&&") )
+				{
+					opnode = syntactic_tree::exp(std::string("&&"), nullptr, m_line);
+				}
+				else if( CSTRCMP_SKIP(ptr, "o") || CSTRCMP_SKIP(ptr, "||") )
+				{
+					opnode = syntactic_tree::exp(std::string("||"), nullptr, m_line);
+				}
+				//compone node
+				opnode->m_left = left;
+				//skip
+				skip_space_end_comment(ptr);
+				//parse value
+				if (!parse_compare(ptr, opnode->m_right))  return false;
+				//skip
+				skip_space_end_comment(ptr);
+			}
 			//save node
-			node = logicop;
+			node = opnode;
 			//success
 			return true;
 		}
@@ -787,8 +793,8 @@ namespace it_language
         staments    := *(stament [end_line]) stament [end_partial]
 		stament		:= declaration |  if | call | cicle | operation
         assignment  := ('='|['ed'] 'assegna' 'gli'|'come')
-        operation   := variable assignament exp |
-                       'assegna' exp ('a'|'ad') variable
+        operation   := assignable assignament exp |
+                       'assegna' exp ('a'|'ad') assignable
         declaration := ("dichiara"|"definisci") (variable | variable assignament exp) *( ',' (variable | variable assignament exp))
 		if			:= 'se' exp 'allora' staments ['altrimenti' staments]
 		call        := ('esegui'|'chiama') variable [('di'|'del'|'con'|'su'|'dalla'|'da') [*(exp ',') exp]]
@@ -832,6 +838,122 @@ namespace it_language
 			push_error("not valid stament");
 			return false;
 		}
+		//is field request?
+		bool is_a_field(const char* ptr)
+		{
+			//skip space
+			skip_space_end_comment(ptr, false);
+			//is a name?
+			if (!is_start_name(*ptr)) return false;
+			//parse variable
+			std::string variable_name;
+			if (!parse_name(ptr, &ptr, variable_name)) return false;
+			//skip space
+			skip_space_end_comment(ptr, false);
+			//index start char?
+			return is_start_index(*ptr);
+		}
+		//parse field
+		bool parse_field(const char*& ptr, syntactic_tree::node*& node)
+		{
+			syntactic_tree::exp_node*      exp_node = nullptr;
+			syntactic_tree::variable_node* variable_node = nullptr;
+			//parse variable string
+			std::string variable_name;
+			if (!parse_name(ptr, &ptr, variable_name))
+			{
+				push_error("not valid variable name");
+				return false;
+			}
+			if (!exists_variable(variable_name))
+			{
+				push_error("variable not declared");
+				return false;
+			}
+			//skip
+			skip_space_end_comment(ptr);
+			//skip '['
+			++ptr;
+			//skip
+			skip_space_end_comment(ptr);
+			//parse exp
+			if (!parse_exp(ptr, exp_node))
+			{
+				push_error("not valid indexing expression (value)");
+				return false;
+			}
+			//skip
+			skip_space_end_comment(ptr);
+			//end ']'
+			if (!is_end_index(*ptr))
+			{
+				push_error("not valid indexing, not found ']'");
+				return false;
+			}
+			//skip ']'
+			++ptr;
+			//alloc variable node
+			variable_node = syntactic_tree::variable(variable_name, m_line);
+			//new field node
+			node = syntactic_tree::field(variable_node, exp_node, m_line);
+			//correct
+			return true;
+		}
+		//is variable
+		bool is_variable(const char*& ptr)
+		{
+			//skip space
+			skip_space_end_comment(ptr, false);
+			//is a name?
+			if (!is_start_name(*ptr)) return false;
+			//is a variable
+			return true;
+		}
+		//parse variable
+		bool parse_variable(const char*& ptr, syntactic_tree::node*& node)
+		{
+			//skip
+			skip_space_end_comment(ptr);
+			//parse variable
+			std::string variable_name;
+			if (!parse_name(ptr, &ptr, variable_name))
+			{
+				push_error("not valid variable name");
+				return false;
+			}
+			if (!exists_variable(variable_name))
+			{
+				push_error("variable not declared");
+				return false;
+			}
+			//return
+			node = syntactic_tree::variable(variable_name, m_line);
+			//return true...
+			return true;
+		}
+		//is assignable attribute
+		bool is_an_assignable_attribute(const char* ptr)
+		{
+			//is field
+			if (is_a_field(ptr)) return true;
+			//is variable
+			return is_variable(ptr);
+		}
+		//parse assignable
+		bool parse_assignable(const char*& ptr, syntactic_tree::node*& node)
+		{
+			if (is_a_field(ptr))
+			{
+				if (parse_field(ptr, node)) return true;
+			}
+			else if (is_variable(ptr))
+			{
+				if (parse_variable(ptr, node)) return true;
+			}
+			//error
+			push_error("the assignable attribute isn't valid");
+			return false;
+		}
 		//parse declaration
 		bool parse_declaration(const char*& ptr, syntactic_tree::node*& node)
 		{
@@ -850,6 +972,8 @@ namespace it_language
             {
                 // skip space
                 skip_space_end_comment(ptr);
+				//is variable?
+				if (!is_variable(ptr)) return false;
                 // parse variable name
                 std::string variable_name;
                 if (!parse_name(ptr, &ptr, variable_name))
@@ -937,7 +1061,7 @@ namespace it_language
             skip_space_end_comment(ptr,false);
             //is assegna' or variable?
             if( CSTRCMP(ptr,"assegna") ) return true;
-            if( is_start_name(*ptr) ) return true;
+            if( is_an_assignable_attribute(ptr) ) return true;
             return false;
         }
 		//parse operation
@@ -967,55 +1091,36 @@ namespace it_language
                 }
                 //skip space
                 skip_space_end_comment(ptr);
-                // parse variable name
-                std::string variable_name;
-                if (!parse_name(ptr, &ptr, variable_name))
-                {
-                    // dealloc exp
-                    if (exp) delete exp;
-                    // push error
-                    push_error("not valid variable name");
-                    return false;
-                }
-                //variable olready exist?
-                if (!exists_variable(variable_name))
-                {
-                    //dealloc exp
-                    if (exp) delete exp;
-                    //push error
-                    push_error("variable not declared");
-                    return false;
-                }
-                //build node
-                node = syntactic_tree::operation(syntactic_tree::variable(variable_name), exp, m_line);
+                // parse variable or field
+				syntactic_tree::node *assignable_node = nullptr;
+				// is a variable o field?
+				if (!parse_assignable(ptr, assignable_node)) return false;
+				//build node
+				node = syntactic_tree::operation((syntactic_tree::assignable_node*)assignable_node, exp, m_line);
             }
             else
-            // <variable> <assignment> <exp>
+            // <assignable> <assignment> <exp>
             {
-                // parse variable name
-                std::string variable_name;
-                if (!parse_name(ptr, &ptr, variable_name))
-                {
-                    push_error("not valid variable name");
-                    return false;
-                }
+				// parse variable or field
+				syntactic_tree::node *assignable_node = nullptr;
+				// is a variable o field?
+				if (!parse_assignable(ptr, assignable_node)) return false;
                 //skip space
                 skip_space_end_comment(ptr);
                 //find assignment ?
-                if (!parse_assignment(ptr)) return false;
+				if (!parse_assignment(ptr)) 
+				{
+					if (assignable_node) delete assignable_node; 
+					return false;
+				}
                 // exp
-                if (!parse_exp(ptr, exp)) return false;
-                //variable olready exist?
-                if (!exists_variable(variable_name))
-                {
-                    //dealloc exp
-                    if (exp) delete exp;
-                    //push error
-                    push_error("variable not declared");
-                    return false;
-                }
-                //build node
-                node = syntactic_tree::operation(syntactic_tree::variable(variable_name), exp, m_line);
+                if (!parse_exp(ptr, exp))
+				{
+					if (assignable_node) delete assignable_node;
+					return false;
+				}
+				//build node
+				node = syntactic_tree::operation((syntactic_tree::assignable_node*)assignable_node, exp, m_line);
             }
 			//is parsed
 			return true;

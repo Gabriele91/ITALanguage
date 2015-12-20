@@ -28,8 +28,10 @@ namespace it_language
 			FOR_NODE,
 			EXP_NODE,
 			VALUE_NODE,
+			CONSTANT_NODE,
+			ASSIGNABLE_NODE,
 			VARIABLE_NODE,
-			CONSTANT_NODE
+			FIELD_NODE
 		};
 
 		//class declaretion
@@ -42,7 +44,9 @@ namespace it_language
 		class exp_node;
 		class value_node;
 		class constant_node;
+		class assignable_node;
 		class variable_node;
+		class field_node;
 		//node list
 		using list_nodes = std::vector< node* >;
 		using list_exps  = std::vector< exp_node* >;
@@ -130,8 +134,8 @@ namespace it_language
 		public:
 
 			//variable and exp
-			variable_node* m_variable{ nullptr };
-			exp_node*      m_exp{ nullptr };
+			assignable_node* m_assignable{ nullptr };
+			exp_node*        m_exp{ nullptr };
 
 			//op node
 			op_node()
@@ -229,9 +233,11 @@ namespace it_language
 			virtual bool is(node_type type) const
 			{
 				return EXP_NODE == type ||
+					   ASSIGNABLE_NODE == type ||
 					   VALUE_NODE == type ||
 					   CONSTANT_NODE == type ||
-					   CONSTANT_NODE == type ||
+					   VARIABLE_NODE == type ||
+					   FIELD_NODE == type ||
 					   CALL_NODE == type;
 			}
 		};
@@ -276,6 +282,11 @@ namespace it_language
 				return m_exp->m_type == VARIABLE_NODE;
 			}
 
+			bool is_field() const
+			{
+				return m_exp->m_type == FIELD_NODE;
+			}
+
 			bool is_constant() const
 			{
 				return m_exp->m_type == CONSTANT_NODE;
@@ -286,21 +297,6 @@ namespace it_language
 				return m_exp->m_type == EXP_NODE;
 			}
 		};
-
-
-		//variable
-		class variable_node : public exp_node
-		{
-		public:
-			//name
-			std::string m_name;
-			//value node
-			variable_node()
-			{
-				m_type = VARIABLE_NODE;
-			};
-		};
-
 		//costant
 		class constant_node : public exp_node
 		{
@@ -329,6 +325,53 @@ namespace it_language
 			constant_node()
 			{
 				m_type = CONSTANT_NODE;
+			};
+		};
+		//assignable
+		class assignable_node : public exp_node
+		{
+
+		public:
+			//value node
+			assignable_node()
+			{
+				m_type = ASSIGNABLE_NODE;
+			};
+			//to variable node
+			variable_node* to_variable_node() const
+			{
+				return (variable_node*) this;
+			}
+			//to field node
+			field_node* to_field_node() const
+			{
+				return (field_node*) this;
+			}
+		};
+		//variable
+		class variable_node : public assignable_node
+		{
+		public:
+			//name
+			std::string m_name;
+			//value node
+			variable_node()
+			{
+				m_type = VARIABLE_NODE;
+			};
+		};
+
+		//field node
+		class field_node : public assignable_node
+		{
+		public:
+			//values
+			assignable_node* m_assignable{ nullptr };
+			exp_node*	     m_exp{ nullptr };
+			//field node
+			field_node()
+			{
+				m_type = FIELD_NODE;
 			};
 		};
 
@@ -384,6 +427,18 @@ namespace it_language
 			node->m_char        = ichar;
 			return node;
 		}
+
+		//field
+		static field_node* field(assignable_node* var_to_field, exp_node* exp_field, size_t line = 0, size_t ichar = 0)
+		{
+			auto* node = new field_node;
+			node->m_assignable = var_to_field;
+			node->m_exp        = exp_field;
+			node->m_line       = line;
+			node->m_char       = ichar;
+			return node;
+		}
+
 		//call
 		static call_node* call(variable_node* var_to_call, size_t line = 0, size_t ichar = 0)
 		{
@@ -479,25 +534,25 @@ namespace it_language
 		}
 
 		//operation
-		static op_node* operation(variable_node* variable, exp_node* exp, size_t line = 0, size_t ichar = 0)
+		static op_node* operation(assignable_node* assignable, exp_node* exp, size_t line = 0, size_t ichar = 0)
 		{
 			auto* node = new op_node;
-            node->m_variable = variable;
-			node->m_exp      = exp;
-			node->m_line     = line;
-			node->m_char     = ichar;
-			return node;
-		}
-		static op_node* assignment(variable_node* variable, exp_node* exp, size_t line = 0, size_t ichar = 0)
-		{
-			auto* node = new op_node;
-			node->m_variable = variable;
+			node->m_assignable = assignable;
 			node->m_exp = exp;
 			node->m_line = line;
 			node->m_char = ichar;
 			return node;
 		}
-        
+
+		static op_node* assignment(assignable_node* assignable, exp_node* exp, size_t line = 0, size_t ichar = 0)
+		{
+			auto* node = new op_node;
+			node->m_assignable = assignable;
+			node->m_exp = exp;
+			node->m_line = line;
+			node->m_char = ichar;
+			return node;
+		}
         //while stament
         static while_node* while_do(exp_node* if_exp, size_t line = 0, size_t ichar = 0)
         {

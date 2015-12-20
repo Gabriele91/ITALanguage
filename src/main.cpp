@@ -31,7 +31,7 @@ int main(int argc, const char* argv[])
 			std::cout << error.m_line << ":" << error.m_error << "\n";
 		}
 	}
-
+#if 1
     //CPP COMPILER
     {
         cpp_compiler compiler;
@@ -48,6 +48,7 @@ int main(int argc, const char* argv[])
         outfile << compiler.m_cpp_code;
         outfile.close();
     }
+#endif
     //JS COMPILER
     {
         js_compiler compiler;

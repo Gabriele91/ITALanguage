@@ -125,7 +125,9 @@
     <ClCompile Include="src\main.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="include\backend_cpp_header.h" />
     <ClInclude Include="include\compile_tree_to_cpp.h" />
+    <ClInclude Include="include\compile_tree_to_js.h" />
     <ClInclude Include="include\parser.h" />
     <ClInclude Include="include\syntactic_tree.h" />
   </ItemGroup>

@@ -1,9 +1,19 @@
+definisci x = esegui vettore.
+definisci i = 0.
+definisci j = 0.
+definisci n come intero di lettura di "valore".
+
+mentre i è minore di n ripeti: x[i] = lettura di "valore["+i+"]" assegna i+1 ad i.
+mentre j è minore di n ripeti: stampa di x[j],"\n" assegna j+1 ad j.
+stampa di "l'array è di dimensione: ", dimensione di x.
+
+/*
 dichiara x.
 assegna lettura di "qualcosa" a x.
 dichiara indice ed assegna gli 0.
 definisci n come intero del inserimento di "numero di ripetizioni".
 mentre indice è minore di n o indice è uguale a n ripeti: stampa di x,"\n" assegna indice+1 ad indice.
-
+*/
 /*
 dichiara a ed assegna gli intero di inserimento di "un numero".
 definisci i=0, uno=1.

@@ -1,6 +1,9 @@
 
     <!DOCTYPE html>
     <html>
+	<head>
+	<meta charset="UTF-8"/>
+	</head>
     <style>
     
     .console
@@ -55,7 +58,27 @@
             console.innerHTML += nl2br(arguments[i]);
         }
     }
-    
+
+    function vettore()
+    {
+       return [];
+    }   
+
+	function lunghezza(value)
+    {
+       return value.length;
+    }   
+
+	function dimensione(value)
+    {
+       return value.length;
+    }   
+
+	function inserisci(v_array,value)
+    {
+       v_array.push(value);
+    }   
+
     function leggi(value)
     {
         /*none*/
@@ -96,15 +119,21 @@
     }
     
     
-var x;
-x = lettura("qualcosa");
-var indice=0.000000;
-var n=intero(inserimento("numero di ripetizioni"));
-while(((indice)<(n))||((indice)==(n)))
+var x=vettore();
+var i=0.000000;
+var j=0.000000;
+var n=intero(lettura("valore"));
+while((i)<(n))
 {
-stampa(x,"\n"); 
-indice = (indice)+(1.000000);
+x[i] = lettura((("valore[")+(i))+("]"));
+i = (i)+(1.000000);
 }
+while((j)<(n))
+{
+stampa(x[j],"\n"); 
+j = (j)+(1.000000);
+}
+stampa("l\'array è di dimensione: ",dimensione(x)); 
 
     </script>
     </html>

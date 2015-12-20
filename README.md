@@ -3,19 +3,33 @@ Programming language in italian, created for teaching.
 
 #EBNF
 
-    italanguage := +(stament end_comand)
-    staments    := *(stament [end_line]) stament [end_partial]
-    stament     := declaration |  if | call | cicle | operation
-    assignment  := ('='|['ed'] 'assegna' 'gli'|'come')
-    operation   := variable assignament exp | 
-                   'assegna' exp ('a'|'ad') variable
-  	declaration := ("dichiara"|"definisci") (variable | variable assignament exp) *( ',' (variable | variable assignament exp))
-  	if          := 'se' exp 'allora' staments ['altrimenti' staments]
-    call        := ('esegui'|'chiama') variable [('di'|'del'|'con'|'su'|'dalla'|'da') [*(exp ',') exp]]
-  	cicle       :=  while | for_each
-  	while       := 'mentre' <exp> 'ripeti' ':' staments
-  	for_each    := 'per' 'ogni' variable ('in'|'appartenente'|'di') variable ':' staments
+	logic_op   := ('e'|'o'|'&&'|'||')
+    logic_comp := (['è'] 'maggiore' 'di'|['è'] 'minore' 'di'|['è'] 'uguale' 'a'|'<'|'>'|'==')
+	logic_one  := ('non'|'!')
 
+	exp		   := logic
+	logic      := compare *(logic_op compare) 
+	compare    := summinus ?(logic_comp summinus)
+	summinus   := timediv *(('+'|'-') timediv)
+	timediv    := oneop *(('*'|'/') oneop)
+	oneop      := ('-' value) | (logic_one value) | value
+	value      := constant | '(' exp ')' | call | assignable
+	assignable := variable | variable '[' exp ']'
+
+	//statments
+	italanguage := +(stament end_comand)
+	staments    := *(stament [end_line]) stament [end_partial]
+    stament		:= declaration |  if | call | cicle | operation
+    assignment  := ('='|['ed'] 'assegna' 'gli'|'come')
+    operation   := assignable assignament exp | 
+                   'assegna' exp ('a'|'ad') assignable
+	declaration := ("dichiara"|"definisci") (variable | variable assignament exp) *( ',' (variable | variable assignament exp))
+	if			:= 'se' exp 'allora' staments ['altrimenti' staments]
+    call        := ('esegui'|'chiama') variable [('di'|'del'|'con'|'su'|'dalla'|'da') [*(exp ',') exp]]
+	cicle       :=  while | for_each
+	while       := 'mentre' <exp> 'ripeti' ':' staments
+	for_each    := 'per' 'ogni' variable ('in'|'appartenente'|'di') variable ':' staments
+	
 #LICENSES
     MIT
     

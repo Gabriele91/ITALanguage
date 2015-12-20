@@ -29,5 +29,11 @@
     <ClInclude Include="include\parser.h">
       <Filter>File di intestazione</Filter>
     </ClInclude>
+    <ClInclude Include="include\compile_tree_to_js.h">
+      <Filter>File di intestazione</Filter>
+    </ClInclude>
+    <ClInclude Include="include\backend_cpp_header.h">
+      <Filter>File di intestazione</Filter>
+    </ClInclude>
   </ItemGroup>
 </Project>
