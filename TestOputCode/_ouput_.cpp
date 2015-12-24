@@ -878,6 +878,8 @@ it_variable x=vettore();
 it_variable i=it_variable(0.000000f); 
 it_variable j=it_variable(0.000000f); 
 it_variable n=intero(lettura(it_variable("valore"))); 
+it_variable a=it_variable(0.000000f); 
+a = lettura();
 while((i)<(n))
 {
 get_field_vector(x,i) = lettura(((it_variable("valore["))+(i))+(it_variable("]")));
@@ -888,6 +890,6 @@ while((j)<(n))
 stampa(get_field_vector(x,j),it_variable("\n")); 
 j = (j)+(it_variable(1.000000f));
 }
-stampa(it_variable("l\'array è di dimensione: "),dimensione(x)); 
+stampa(it_variable("l\'array è di dimensione: "),dimensione(x),it_variable("\n")); 
 return 0;
 }

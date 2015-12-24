@@ -56,7 +56,7 @@ namespace it_language
                    'assegna' exp ('a'|'ad') assignable
 	declaration := ("dichiara"|"definisci") (variable | variable assignament exp) *( ',' (variable | variable assignament exp))
 	if			:= 'se' exp 'allora' staments ['altrimenti' staments]
-    call        := ('esegui'|'chiama') variable [('di'|'del'|'con'|'su'|'dalla'|'da') [*(exp ',') exp]]
+    call        := ?('esegui'|'chiama') variable [('di'|'del'|'con'|'su'|'dalla'|'da') [*(exp ',') exp]]
 	cicle       :=  while | for_each
 	while       := 'mentre' <exp> 'ripeti' ':' staments
 	for_each    := 'per' 'ogni' variable ('in'|'appartenente'|'di') variable ':' staments
@@ -64,9 +64,8 @@ namespace it_language
 	class parser
 	{
 	public:
-
 		//context
-		size_t                     m_line;
+        size_t  m_line { 0 };
         //errors
         struct error_info
         {
@@ -81,17 +80,66 @@ namespace it_language
             
         };
 		std::list < error_info >  m_errors;
-		//variables
-		std::vector< std::string > m_variables;
+        //variables / functions
+        enum variable_type
+        {
+            IS_VARIABLE,
+            IS_FUNCTION
+        };
+        struct variable_row
+        {
+            
+            variable_type  m_type { IS_VARIABLE };
+            std::string    m_name;
+            
+            variable_row(const std::string& name)
+            :m_type(IS_VARIABLE)
+            ,m_name(name)
+            {
+            }
+            
+            variable_row(variable_type type,const std::string& name)
+            :m_type(type)
+            ,m_name(name)
+            {
+            }
+            
+            bool operator == (const variable_row& left) const
+            {
+                return m_type == left.m_type && m_name == left.m_name ;
+            }
+        };
+		std::vector< variable_row > m_variables;
 		//put variable
 		void push_variable(const std::string& str)
 		{
-			m_variables.push_back(str);
+            m_variables.push_back(variable_row(  str ));
 		}
-		bool exists_variable(const std::string& str)
+		bool exists_variable(const std::string& str) const
 		{
-			return std::find(m_variables.begin(), m_variables.end(), str) != m_variables.end();
-		}
+            return std::find(m_variables.begin(),
+                             m_variables.end(),
+                             variable_row( IS_VARIABLE, str )) != m_variables.end();
+        }
+        bool is_variable(const std::string& str)
+        {
+            return exists_variable(str);
+        }
+        //put function
+        void push_function(const std::string& str)
+        {
+            m_variables.push_back(variable_row( IS_FUNCTION, str ));
+        }
+        bool exists_function(const std::string& str) const
+        {
+            return std::find(m_variables.begin(),
+                             m_variables.end(),
+                             variable_row( IS_FUNCTION, str )) != m_variables.end();
+        }
+        bool is_function(const std::string& str)
+        {
+            return exists_function(str);
+        }
 		//push error
 		void push_error(const std::string& error)
 		{
@@ -1191,6 +1239,8 @@ namespace it_language
             // or is a call compact
             std::string call_name;
             if (!parse_name(ptr, &ptr, call_name)) return false;
+            // is pre build function?
+            if(is_function(call_name)) return true;
             //skip space
             skip_space_end_comment(ptr,false);
             //and id/con
@@ -1326,12 +1376,39 @@ namespace it_language
 				skip_space_end_comment(ptr);
 			}
 			return true;
-		}
+        }
+        //pre build list
+        using list_functions = std::vector<std::string>;
+        using list_variables = std::vector<std::string>;
+        //append to context
+        void append_into_context(const list_functions& pre_builds_functions,
+                                 const list_variables& pre_builds_variables)
+        {
+            //put all into the context
+            for(auto& name : pre_builds_functions) push_function(name);
+            for(auto& name : pre_builds_variables) push_variable(name);
+        }
+        //parse language
+        bool italanguage(const std::string& source,
+                         syntactic_tree& tree)
+        {
+            //start parsing
+            return italanguage(source,
+                               tree,
+                               list_functions(),
+                               list_variables());
+        }
 		//parse language
-		bool italanguage(const std::string& source, syntactic_tree& tree)
+		bool italanguage(const std::string& source,
+                         syntactic_tree& tree,
+                         const list_functions& pre_builds_functions,
+                         const list_variables& pre_builds_variables)
 		{
             //stat at line 1
             m_line = 1;
+            //append all
+            append_into_context(pre_builds_functions,
+                                pre_builds_variables);
             //contant string ptr
 			const char* source_ptr = source.c_str();
             //start parsing

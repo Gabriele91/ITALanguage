@@ -30,7 +30,9 @@
 		E00EBE911C198C3900790B65 /* main.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = main.cpp; sourceTree = "<group>"; };
 		E09A887D1C1C396E004718D0 /* source.it */ = {isa = PBXFileReference; explicitFileType = sourcecode.java; fileEncoding = 4; path = source.it; sourceTree = "<group>"; };
 		E09A887E1C1C39E8004718D0 /* compile_tree_to_js.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = compile_tree_to_js.h; sourceTree = "<group>"; };
+		E0A511331C287DBF003225AE /* backend_cpp_header.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = backend_cpp_header.h; sourceTree = "<group>"; };
 		E0BD58DC1C1D7EC500B5C044 /* compiler_utilities.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = compiler_utilities.h; sourceTree = "<group>"; };
+		E0BDA9FB1C2C453500A5D5E8 /* program_language.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = program_language.h; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -73,11 +75,13 @@
 		E00EBE8C1C198C3900790B65 /* include */ = {
 			isa = PBXGroup;
 			children = (
+				E0A511331C287DBF003225AE /* backend_cpp_header.h */,
 				E00EBE8E1C198C3900790B65 /* parser.h */,
 				E00EBE8F1C198C3900790B65 /* syntactic_tree.h */,
 				E00EBE8D1C198C3900790B65 /* compile_tree_to_cpp.h */,
 				E09A887E1C1C39E8004718D0 /* compile_tree_to_js.h */,
 				E0BD58DC1C1D7EC500B5C044 /* compiler_utilities.h */,
+				E0BDA9FB1C2C453500A5D5E8 /* program_language.h */,
 			);
 			path = include;
 			sourceTree = SOURCE_ROOT;

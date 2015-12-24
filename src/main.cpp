@@ -2,68 +2,40 @@
 #include <iostream>
 #include <fstream>
 #include <sstream>
-#include <compile_tree_to_cpp.h>
-#include <compile_tree_to_js.h>
-#include <syntactic_tree.h>
-#include <parser.h>
+#include <program_language.h>
 
 
 
 int main(int argc, const char* argv[])
 {
-	using tree         = it_language::syntactic_tree;
-    using parser       = it_language::parser;
-    using cpp_compiler = it_language::compile_tree_to_cpp;
-    using js_compiler  = it_language::compile_tree_to_js;
-
-
-	tree      it_tree;
-	parser	  it_parser;
-
+    //fast access
+    using program_language = it_language::program_language;
+    //compiler object
+    program_language it_compiler;
+    //read code
 	std::ifstream source_file("source.it");
 	std::string source((std::istreambuf_iterator<char>(source_file)), std::istreambuf_iterator<char>());
-
-	if (!it_parser.italanguage(source,it_tree))
-	//ouput errors
-	{
-		for (auto& error : it_parser.m_errors)
-		{
-			std::cout << error.m_line << ":" << error.m_error << "\n";
-		}
-	}
-#if 1
-    //CPP COMPILER
+    //compile
+    program_language::compiler_ouput compiler_ouput;
+    compiler_ouput = it_compiler.compile(source,program_language::TO_JS|
+                                                program_language::TO_CPP);
+    //ouput:
+    if(compiler_ouput.m_type & program_language::ERRORS)
     {
-        cpp_compiler compiler;
-        compiler.compile(&it_tree);
-        //errors?
-        if(compiler.m_errors.size())
-            //ouput errors
-            for (auto& error : compiler.m_errors)
-            {
-                std::cout << error << "\n";
-            }
-        //output code
+        std::cout << compiler_ouput.m_errors;
+    }
+    //output code cpp
+    {
         std::ofstream outfile("TestOputCode/_ouput_.cpp");
-        outfile << compiler.m_cpp_code;
+        outfile << compiler_ouput.m_out_cpp;
         outfile.close();
     }
-#endif
-    //JS COMPILER
+    //output code js
     {
-        js_compiler compiler;
-        compiler.compile(&it_tree);
-        //errors?
-        if(compiler.m_errors.size())
-            //ouput errors
-            for (auto& error : compiler.m_errors)
-            {
-                std::cout << error << "\n";
-            }
-        //output code
         std::ofstream outfile("TestOputCodeJS/index.html");
-        outfile << compiler.m_js_code;
+        outfile << compiler_ouput.m_out_js;
         outfile.close();
     }
+    
 	return 0;
 }
