@@ -33,6 +33,7 @@
 		E0A511331C287DBF003225AE /* backend_cpp_header.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = backend_cpp_header.h; sourceTree = "<group>"; };
 		E0BD58DC1C1D7EC500B5C044 /* compiler_utilities.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = compiler_utilities.h; sourceTree = "<group>"; };
 		E0BDA9FB1C2C453500A5D5E8 /* program_language.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = program_language.h; sourceTree = "<group>"; };
+		E0EBB2C21C34435D006C54CD /* config.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = config.h; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -82,6 +83,7 @@
 				E09A887E1C1C39E8004718D0 /* compile_tree_to_js.h */,
 				E0BD58DC1C1D7EC500B5C044 /* compiler_utilities.h */,
 				E0BDA9FB1C2C453500A5D5E8 /* program_language.h */,
+				E0EBB2C21C34435D006C54CD /* config.h */,
 			);
 			path = include;
 			sourceTree = SOURCE_ROOT;

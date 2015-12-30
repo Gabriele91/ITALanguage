@@ -70,7 +70,11 @@ namespace it_language
 			{
 				return (T*)this;
 			}
-
+            
+            virtual ~node()
+            {
+                //none
+            }
 		};
 
 		//root node
@@ -90,7 +94,11 @@ namespace it_language
 				m_staments.push_back(node);
 				return this;
 			}
-
+            
+            virtual ~root_node()
+            {
+                for(auto& node : m_staments) delete node;
+            }
 		};
 
 		//dec node
@@ -124,7 +132,17 @@ namespace it_language
             
             void append(variable_node* variable,exp_node* exp)
             {
-                m_decs.push_back(dec_field(variable,exp));
+                m_decs.push_back(std::move(dec_field(variable,exp)));
+            }
+            
+            
+            virtual ~dec_node()
+            {
+                for(dec_field& dec : m_decs)
+                {
+                    if(dec.m_variable) delete dec.m_variable;
+                    if(dec.m_exp)      delete dec.m_exp;
+                }
             }
 		};
 
@@ -141,7 +159,13 @@ namespace it_language
 			op_node()
 			{
 				m_type = OP_NODE;
-			};
+			}
+            
+            virtual ~op_node()
+            {
+                if(m_assignable) delete m_assignable;
+                if(m_exp)        delete m_exp;
+            }
 
 		};
 
@@ -158,13 +182,19 @@ namespace it_language
             while_node()
             {
                 m_type = WHILE_NODE;
-            };
+            }
             
             //append statment
             virtual while_node* append(node* node)
             {
                 m_staments.push_back(node);
                 return this;
+            }
+            
+            virtual ~while_node()
+            {
+                if(m_exp)                    delete m_exp;
+                for(auto& node : m_staments) delete node;
             }
             
         };
@@ -204,6 +234,13 @@ namespace it_language
 			{
 				return !m_else_staments.size();
 			}
+            
+            virtual ~if_node()
+            {
+                if(m_exp)                         delete m_exp;
+                for(auto& node : m_staments)      delete node;
+                for(auto& node : m_else_staments) delete node;
+            }
 		};
 
 		//expression
@@ -239,7 +276,13 @@ namespace it_language
 					   VARIABLE_NODE == type ||
 					   FIELD_NODE == type ||
 					   CALL_NODE == type;
-			}
+            }
+            
+            virtual ~exp_node()
+            {
+                if(m_left)   delete m_left;
+                if(m_right)  delete m_right;
+            }
 		};
 
 		//op node
@@ -262,7 +305,13 @@ namespace it_language
 			{
 				m_args.push_back(node);
 				return this;
-			}
+            }
+            
+            virtual ~call_node()
+            {
+                if(m_variable)              delete m_variable;
+                for(auto& node : m_args)    delete node;
+            }
 		};
 
 		//value node
@@ -295,7 +344,12 @@ namespace it_language
 			bool is_exp() const
 			{
 				return m_exp->m_type == EXP_NODE;
-			}
+            }
+            
+            virtual ~value_node()
+            {
+                if(m_exp)   delete m_exp;
+            }
 		};
 		//costant
 		class constant_node : public exp_node
@@ -373,6 +427,12 @@ namespace it_language
 			{
 				m_type = FIELD_NODE;
 			};
+            
+            virtual ~field_node()
+            {
+                if(m_assignable) delete m_assignable;
+                if(m_exp)        delete m_exp;
+            }
 		};
 
 		//utilities
@@ -580,5 +640,10 @@ namespace it_language
 			m_root->append(node);
 			return m_root;
 		}
+        //delete root
+        virtual ~syntactic_tree()
+        {
+            delete m_root;
+        }
 	};
 };

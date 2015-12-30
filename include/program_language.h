@@ -7,6 +7,7 @@
 //
 #pragma once
 
+#include <config.h>
 #include <compile_tree_to_cpp.h>
 #include <compile_tree_to_js.h>
 #include <syntactic_tree.h>

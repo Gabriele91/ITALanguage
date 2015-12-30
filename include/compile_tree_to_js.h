@@ -209,7 +209,7 @@ namespace it_language
             //..
             std::string cout;
             //..
-            for(auto fields : node->m_decs)
+            for(auto& fields : node->m_decs)
             {
                 cout += std::string("var ")
                 + fields.m_variable->m_name
